@@ -16,8 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
-import static de.bambussoft.immopush.send.BotCommands.ADD_SEARCH_REQUEST;
-import static de.bambussoft.immopush.send.BotCommands.DISPLAY_SEARCH_REQUEST;
+import static de.bambussoft.immopush.send.BotCommands.*;
 
 @Service
 public class Bot {
@@ -54,6 +53,8 @@ public class Bot {
                 } else if (message.text().contains(DISPLAY_SEARCH_REQUEST)) {
                     String configs = searchConfiguration.allToPrint();
                     send(configs);
+                } else if (message.text().contains(DELETE_SEARCH_REQUEST)) {
+                    processDeleteRequest(message.text());
                 }
             }
         });
@@ -76,6 +77,21 @@ public class Bot {
             }
         } catch (MalformedURLException e) {
             send("This is not a valid URL");
+        }
+    }
+
+    private void processDeleteRequest(String text) {
+        String longStr = text.substring(DELETE_SEARCH_REQUEST.length()).trim();
+        try {
+            long id = Long.parseLong(longStr);
+            boolean worked = searchConfiguration.delete(id);
+            if (worked) {
+                send("Deleted!");
+            } else {
+                send("Nothing to delete");
+            }
+        } catch (NumberFormatException e) {
+            send("Not a number");
         }
     }
 }

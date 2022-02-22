@@ -22,4 +22,12 @@ public class SearchConfiguration {
     public String allToPrint() {
         return searchRepository.findAll().stream().map(s -> s.getId() + " " + s.getUrl()).collect(Collectors.joining("\n"));
     }
+
+    public boolean delete(long id) {
+        if (!searchRepository.existsById(id)) {
+            return false;
+        }
+        searchRepository.deleteById(id);
+        return true;
+    }
 }

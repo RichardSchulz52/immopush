@@ -1,5 +1,6 @@
 package de.bambussoft.immopush.fetch;
 
+import de.bambussoft.immopush.SupportedHosts;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -24,7 +25,7 @@ public class EbayKleinanzeigenParser implements WebsiteParser {
             if (a != null) {
                 URL href = null;
                 try {
-                    href = new URL(a.attr("href"));
+                    href = new URL("https://" + SupportedHosts.EBAY_KLEINANZEIGEN + a.attr("href"));
                 } catch (MalformedURLException ex) {
                     ex.printStackTrace();
                 }

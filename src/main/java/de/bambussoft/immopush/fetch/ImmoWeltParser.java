@@ -11,9 +11,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListStripper {
+public class ImmoWeltParser implements WebsiteParser{
 
-    static List<URL> strip(String html) {
+    public List<URL> parse(String html) {
         List<URL> urls = new ArrayList<>();
         Document document = Jsoup.parse(html);
         Elements estates = document.getElementsByClass("EstateItem-1c115");

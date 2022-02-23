@@ -6,11 +6,11 @@ import java.util.Scanner;
 
 public class WebFetcher {
 
-    static String fetch(String url) {
+    static String fetch(URL url) {
         String content = null;
         URLConnection connection = null;
         try {
-            connection = new URL(url).openConnection();
+            connection = url.openConnection();
             Scanner scanner = new Scanner(connection.getInputStream());
             scanner.useDelimiter("\\Z");
             content = scanner.next();

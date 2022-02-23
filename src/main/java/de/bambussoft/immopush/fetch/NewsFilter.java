@@ -17,8 +17,8 @@ public class NewsFilter {
         this.urlRepository = urlRepository;
     }
 
-    public List<URL> filter(List<URL> strip) {
+    public List<URL> filter(List<URL> strip, String chatId) {
         Map<String, List<URL>> urlsPerHost = strip.stream().map(URL::getHost).distinct().collect(toMap(host -> host, host -> strip.stream().filter(url -> url.getHost().equals(host)).collect(Collectors.toList())));
-        return urlsPerHost.keySet().stream().flatMap(h -> urlsPerHost.get(h).stream().filter(url -> !urlRepository.existsById(url.toString()))).collect(Collectors.toList());
+        return urlsPerHost.keySet().stream().flatMap(h -> urlsPerHost.get(h).stream().filter(url -> !urlRepository.existsByUrlAndChatId(url.toString(), chatId))).collect(Collectors.toList());
     }
 }

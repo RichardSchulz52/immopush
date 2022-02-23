@@ -10,8 +10,9 @@ import org.springframework.stereotype.Service;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 public class Searcher {
@@ -24,17 +25,22 @@ public class Searcher {
         this.searchRepository = searchRepository;
     }
 
-    public List<URL> searchNew() {
-        List<String> urls = searchRepository.findAll().stream().map(SearchRequest::getUrl).collect(Collectors.toList());
-        List<URL> foundUrls = new ArrayList<>();
-        for (String url : urls) {
-            List<URL> strip = findOn(url);
-            foundUrls.addAll(strip);
+    public Map<String, List<URL>> searchNew() {
+        List<SearchRequest> searchRequests = searchRepository.findAll();
+        Map<String, List<URL>> foundUrls = new HashMap<>();
+        for (SearchRequest sr : searchRequests) {
+            List<URL> strip = findOn(sr.getUrl());
+            List<URL> forChatIds = foundUrls.computeIfAbsent(sr.getChatId(), str -> new ArrayList<>());
+            forChatIds.addAll(strip);
         }
         NewsFilter newsFilter = new NewsFilter(urlRepository);
-        List<URL> news = newsFilter.filter(foundUrls);
-        urlRepository.saveAll(FoundUrl.from(news));
-        return news;
+        for (String chatId : foundUrls.keySet()) {
+            List<URL> unfiltered = foundUrls.get(chatId);
+            List<URL> news = newsFilter.filter(unfiltered, chatId);
+            urlRepository.saveAll(FoundUrl.from(news, chatId));
+            foundUrls.put(chatId, news);
+        }
+        return foundUrls;
     }
 
     public List<URL> findOn(String urlString) {

@@ -27,21 +27,27 @@ public class Searcher {
     public List<URL> searchNew() {
         List<String> urls = searchRepository.findAll().stream().map(SearchRequest::getUrl).collect(Collectors.toList());
         List<URL> foundUrls = new ArrayList<>();
-        for (String urlString : urls) {
-            try {
-                URL url = new URL(urlString);
-                String website = WebFetcher.fetch(url);
-                WebsiteParser parser = SupportedHosts.getParser(url.getHost());
-                List<URL> strip = parser.parse(website);
-                foundUrls.addAll(strip);
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            }
+        for (String url : urls) {
+            List<URL> strip = findOn(url);
+            foundUrls.addAll(strip);
         }
         NewsFilter newsFilter = new NewsFilter(urlRepository);
         List<URL> news = newsFilter.filter(foundUrls);
         urlRepository.saveAll(FoundUrl.from(news));
         return news;
+    }
+
+    public List<URL> findOn(String urlString) {
+        List<URL> strip = new ArrayList<>();
+        try {
+            URL url = new URL(urlString);
+            String website = WebFetcher.fetch(url);
+            WebsiteParser parser = SupportedHosts.getParser(url.getHost());
+            strip = parser.parse(website);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return strip;
     }
 
 }

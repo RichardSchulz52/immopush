@@ -30,8 +30,8 @@ public class SearchConfiguration {
         urlRepository.saveAll(urls.stream().map(u -> new FoundUrl(u.toString(), chatId)).collect(Collectors.toList()));
     }
 
-    public String allToPrint() {
-        return searchRepository.findAll().stream().map(s -> s.getId() + " " + s.getUrl()).collect(Collectors.joining("\n"));
+    public String allToPrint(String chatId) {
+        return searchRepository.findAllByChatId(chatId).stream().map(s -> s.getId() + " " + s.getUrl()).collect(Collectors.joining("\n"));
     }
 
     public boolean delete(long id) {

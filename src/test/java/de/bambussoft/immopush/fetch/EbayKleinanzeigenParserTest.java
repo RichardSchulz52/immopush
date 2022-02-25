@@ -22,8 +22,9 @@ class EbayKleinanzeigenParserTest {
     EbayKleinanzeigenParser sut;
 
     List<String> expected1143 = new ArrayList<>() {{
-        add("https://www.ebay-kleinanzeigen.de/s-anzeige/sicheres-familienglueck-im-gruenen-bald-ihr-neues-zuhause-in-lange/1926529727-208-1863");
-        add("https://www.ebay-kleinanzeigen.de/s-anzeige/doppelhaushaelfte-ab-387-188-pro-baufamilie-zzgl-grundstueck-mit-grundstuecksservice-auch-andere-standorte-moeglich/2012192541-208-2119");
+        // is-topads are excluded
+        //add("https://www.ebay-kleinanzeigen.de/s-anzeige/sicheres-familienglueck-im-gruenen-bald-ihr-neues-zuhause-in-lange/1926529727-208-1863");
+        //add("https://www.ebay-kleinanzeigen.de/s-anzeige/doppelhaushaelfte-ab-387-188-pro-baufamilie-zzgl-grundstueck-mit-grundstuecksservice-auch-andere-standorte-moeglich/2012192541-208-2119");
         add("https://www.ebay-kleinanzeigen.de/s-anzeige/einfamilienhaus-mit-einliegerwohnung/2033116693-208-1309");
         add("https://www.ebay-kleinanzeigen.de/s-anzeige/neues-zuhause-gesucht-hueckelhoven-umgebung-bitte-lesen-/2033116081-208-1207");
         add("https://www.ebay-kleinanzeigen.de/s-anzeige/exklusives-grundstueck-im-sueden-von-dortmund-fuer-ihr-traumhaus/2033115200-208-1090");

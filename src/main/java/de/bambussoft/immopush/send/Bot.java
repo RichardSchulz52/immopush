@@ -59,6 +59,9 @@ public class Bot {
 
     private int processUpdates(List<Update> updates) {
         updates.forEach(update -> {
+            if (update.message() == null || update.message().chat() == null || update.message().chat().id() == null) {
+                return;
+            }
             String chatId = update.message().chat().id().toString();
             Message message = update.message();
             if (isCommand(message)) {
@@ -137,7 +140,7 @@ public class Bot {
     }
 
     private void processDisplayRequest(String chatId) {
-        String configs = searchConfiguration.allToPrint();
+        String configs = searchConfiguration.allToPrint(chatId);
         if (configs.isBlank()) {
             configs = "No entries";
         }

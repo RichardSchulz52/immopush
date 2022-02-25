@@ -17,10 +17,14 @@ public class EbayKleinanzeigenParser implements WebsiteParser {
     public List<URL> parse(String html) {
         List<URL> urls = new ArrayList<>();
         Document document = Jsoup.parse(html);
-        Elements estates = document.getElementsByClass("aditem");
+        Elements estates = document.getElementsByClass("ad-listitem");
 
 
         estates.forEach(e -> {
+            if (e.hasClass("is-topad")) {
+                return;
+            }
+
             Element a = e.getElementsByTag("a").first();
             if (a != null) {
                 URL href = null;

@@ -5,10 +5,15 @@ import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.SendResponse;
 import de.bambussoft.immopush.SearchConfiguration;
 import de.bambussoft.immopush.SupportedHosts;
 import de.bambussoft.immopush.repo.AllowedUsers;
 import de.bambussoft.immopush.repo.AllowedUsersRepository;
+import de.bambussoft.immopush.repo.FailedMessage;
+import de.bambussoft.immopush.repo.FailedMessageRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -36,14 +41,17 @@ public class Bot {
 
     private TelegramBot telegramBot;
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TreeSet<Long> allowedUsers = new TreeSet<>();
     private final SearchConfiguration searchConfiguration;
     private final AllowedUsersRepository allowedUsersRepository;
+    private final FailedMessageRepository failedMessageRepository;
 
     @Autowired
-    public Bot(SearchConfiguration searchConfiguration, AllowedUsersRepository allowedUsersRepository) {
+    public Bot(SearchConfiguration searchConfiguration, AllowedUsersRepository allowedUsersRepository, FailedMessageRepository failedMessageRepository) {
         this.searchConfiguration = searchConfiguration;
         this.allowedUsersRepository = allowedUsersRepository;
+        this.failedMessageRepository = failedMessageRepository;
     }
 
     @PostConstruct
@@ -54,7 +62,22 @@ public class Bot {
     }
 
     public void send(String chatId, String message) {
-        telegramBot.execute(new SendMessage(chatId, message));
+        boolean failed = sendRaw(chatId, message);
+        if (failed) {
+            FailedMessage failedMessage = new FailedMessage(chatId, message);
+            logger.info("failed to send: " + failedMessage);
+            failedMessageRepository.save(failedMessage);
+        }
+    }
+
+    public boolean resend(String chatId, String message) {
+        boolean success = !sendRaw(chatId, message);
+        return success;
+    }
+
+    private boolean sendRaw(String chatId, String message) {
+        SendResponse response = telegramBot.execute(new SendMessage(chatId, message));
+        return response.message() == null || response.message().text() == null || !response.message().text().equals(message);
     }
 
     private int processUpdates(List<Update> updates) {

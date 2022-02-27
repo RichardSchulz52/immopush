@@ -1,22 +1,21 @@
 package de.bambussoft.immopush.repo;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
+@Table(indexes = {@Index(name = "I_URL", columnList = "URL", unique = true),
+        @Index(name = "I_CHAT_ID", columnList = "CHAT_ID")})
 public class FoundUrl {
 
     @Id
     @GeneratedValue
     private long id;
-    @Column(nullable = false)
+    @Column(name = "URL", nullable = false)
     private String url;
-    @Column(nullable = false)
+    @Column(name = "CHAT_ID", nullable = false)
     private String chatId;
 
     public FoundUrl() {

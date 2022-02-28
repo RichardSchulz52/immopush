@@ -3,6 +3,7 @@ package de.bambussoft.immopush.repo;
 import javax.persistence.*;
 import java.net.URL;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Entity
@@ -13,7 +14,7 @@ public class FoundUrl {
     @Id
     @GeneratedValue
     private long id;
-    @Column(name = "URL", nullable = false)
+    @Column(name = "URL", nullable = false, length = 2000)
     private String url;
     @Column(name = "CHAT_ID", nullable = false)
     private String chatId;
@@ -38,5 +39,16 @@ public class FoundUrl {
         return urls.stream().map(url -> new FoundUrl(url.toString(), chatId)).collect(Collectors.toList());
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FoundUrl foundUrl = (FoundUrl) o;
+        return id == foundUrl.id && Objects.equals(url, foundUrl.url) && Objects.equals(chatId, foundUrl.chatId);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, url, chatId);
+    }
 }

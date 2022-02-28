@@ -1,6 +1,7 @@
 package de.bambussoft.immopush.fetch;
 
 import de.bambussoft.immopush.SupportedHosts;
+import de.bambussoft.immopush.fetch.parser.WebsiteParser;
 import de.bambussoft.immopush.repo.FoundUrl;
 import de.bambussoft.immopush.repo.SearchRepository;
 import de.bambussoft.immopush.repo.SearchRequest;

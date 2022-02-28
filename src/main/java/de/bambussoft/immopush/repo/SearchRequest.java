@@ -11,7 +11,7 @@ public class SearchRequest {
     @Id
     @GeneratedValue
     long id;
-    @Column(nullable = false)
+    @Column(nullable = false, length = 2000)
     String url;
     @Column(nullable = false)
     String chatId;

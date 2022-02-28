@@ -27,7 +27,7 @@ public class SearchConfiguration {
     public void addSearch(String url, String chatId) {
         searchRepository.save(new SearchRequest(url, chatId));
         List<URL> urls = searcher.findOn(url);
-        urlRepository.saveAll(urls.stream().map(u -> new FoundUrl(u.toString(), chatId)).collect(Collectors.toList()));
+        urlRepository.saveAll(urls.stream().map(u -> new FoundUrl(u.toString(), chatId)).distinct().collect(Collectors.toList()));
     }
 
     public String allToPrint(String chatId) {

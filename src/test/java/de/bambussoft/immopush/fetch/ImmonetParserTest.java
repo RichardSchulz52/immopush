@@ -28,6 +28,6 @@ public class ImmonetParserTest extends ParserTest {
 
     @Test
     void parse() {
-        test(sut, expected, "immonet_shortend.html");
+        test(sut, expected, "immonet_shortend");
     }
 }

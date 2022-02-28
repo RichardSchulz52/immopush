@@ -191,7 +191,6 @@ public class Bot {
         String longStr = message.text().substring(DELETE_SEARCH_REQUEST.length()).trim();
         try {
             long id = Long.parseLong(longStr);
-            searchConfiguration.delete(id);
             boolean worked = searchConfiguration.delete(id);
             if (worked) {
                 send(chatId, "Deleted!");

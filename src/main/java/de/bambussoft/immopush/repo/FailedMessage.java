@@ -1,5 +1,6 @@
 package de.bambussoft.immopush.repo;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -10,7 +11,9 @@ public class FailedMessage {
     @Id
     @GeneratedValue
     private long id;
+    @Column(nullable = false)
     private String chatId;
+    @Column(length = 8000, nullable = false)
     private String message;
 
     public FailedMessage() {

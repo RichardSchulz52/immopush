@@ -5,6 +5,8 @@ import de.bambussoft.immopush.repo.FoundUrl;
 import de.bambussoft.immopush.repo.SearchRepository;
 import de.bambussoft.immopush.repo.SearchRequest;
 import de.bambussoft.immopush.repo.UrlRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
 @Service
 public class SearchConfiguration {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final SearchRepository searchRepository;
     private final Searcher searcher;
     private final UrlRepository urlRepository;
@@ -31,6 +34,7 @@ public class SearchConfiguration {
                 .filter(u -> !urlRepository.existsByUrlAndChatId(u.toString(), chatId))
                 .map(u -> new FoundUrl(u.toString(), chatId))
                 .distinct().collect(Collectors.toList());
+        logger.warn("No url found for adding url {} on chatId {}", url, chatId);
         urlRepository.saveAll(newUrls);
     }
 

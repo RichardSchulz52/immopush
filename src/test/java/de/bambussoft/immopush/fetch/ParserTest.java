@@ -21,12 +21,12 @@ public abstract class ParserTest {
 
     void test(WebsiteParser sut, List<String> expected, String pathToHtml) {
         InputStream inputList = getClass().getClassLoader().getResourceAsStream(pathToHtml);
-        String html = toLineList(inputList);
+        String html = fileAsString(inputList);
         List<String> foundExposeUrls = sut.parse(html).stream().map(URL::toString).collect(Collectors.toList());
         assertLinesMatch(expected, foundExposeUrls);
     }
 
-    String toLineList(InputStream is) {
+    String fileAsString(InputStream is) {
         StringBuilder textCollector = new StringBuilder();
         try (InputStreamReader streamReader = new InputStreamReader(is, CHARSET);
              BufferedReader reader = new BufferedReader(streamReader)) {

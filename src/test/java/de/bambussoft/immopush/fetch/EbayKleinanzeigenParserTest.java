@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,11 +38,12 @@ class EbayKleinanzeigenParserTest extends ParserTest {
 
     @Test
     void parse() {
-        InputStream inputList = getClass().getClassLoader().getResourceAsStream("ebay_kl_1143_shortend");
-        String html = toLineList(inputList);
-        List<String> foundExposeUrls = sut.parse(html).stream().map(URL::toString).collect(Collectors.toList());
-        assertLinesMatch(expected1143, foundExposeUrls);
+        test(sut, expected1143, "ebay_kl_1143_shortend");
+    }
 
+    @Test
+    void ignoreAlternatives() {
+        test(sut, Collections.emptyList(), "ebay_kl_with_alternatives");
     }
 
 }

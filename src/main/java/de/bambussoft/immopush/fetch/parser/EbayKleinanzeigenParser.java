@@ -17,6 +17,11 @@ public class EbayKleinanzeigenParser implements WebsiteParser {
     public List<URL> parse(String html) {
         List<URL> urls = new ArrayList<>();
         Document document = Jsoup.parse(html);
+        Element unwantedAlternatives = document.getElementById("srchrslt-adtable-altads");
+        if (unwantedAlternatives != null) {
+            unwantedAlternatives.remove();
+        }
+
         Elements estates = document.getElementsByClass("ad-listitem");
 
 

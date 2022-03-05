@@ -12,6 +12,9 @@ import de.bambussoft.immopush.repo.AllowedUsers;
 import de.bambussoft.immopush.repo.AllowedUsersRepository;
 import de.bambussoft.immopush.repo.FailedMessage;
 import de.bambussoft.immopush.repo.FailedMessageRepository;
+import de.bambussoft.immopush.send.commands.*;
+import de.bambussoft.immopush.send.commands.util.CommandsManager;
+import de.bambussoft.immopush.send.commands.util.OnlyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,25 +30,22 @@ import java.util.Objects;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static de.bambussoft.immopush.send.BotCommands.*;
-
 @Service
 public class Bot {
-
-    @Value("${bot.token}")
-    private String token;
-    @Value("${bot.owner.chatId}")
-    private String ownerChatId;
-    @Value("${bot.owner}")
-    private String owner;
-
-    private TelegramBot telegramBot;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TreeSet<Long> allowedUsers = new TreeSet<>();
     private final SearchConfiguration searchConfiguration;
     private final AllowedUsersRepository allowedUsersRepository;
     private final FailedMessageRepository failedMessageRepository;
+    @Value("${bot.token}")
+    private String token;
+    @Value("${bot.owner.chatId}")
+    private String ownerChatId;
+    @Value("${bot.owner}")
+    private String owner;
+    private TelegramBot telegramBot;
+    private CommandsManager commandsManager;
 
     @Autowired
     public Bot(SearchConfiguration searchConfiguration, AllowedUsersRepository allowedUsersRepository, FailedMessageRepository failedMessageRepository) {
@@ -59,6 +59,16 @@ public class Bot {
         telegramBot = new TelegramBot(token);
         telegramBot.setUpdatesListener(this::processUpdates);
         allowedUsers.addAll(allowedUsersRepository.findAll().stream().map(AllowedUsers::getTelegramId).collect(Collectors.toList()));
+        commandsManager = new CommandsManager();
+        commandsManager.registerCommand(new AddCommand(), this::processSearchRequest);
+        commandsManager.registerCommand(new DisplayCommand(), this::processDisplayRequests);
+        commandsManager.registerCommand(new DeleteSrCommand(), this::processDeleteRequest);
+        commandsManager.registerCommand(new AddUserCommand(), this::processAddUser);
+        commandsManager.registerCommand(new DeleteUserCommand(), this::processDeleteUser);
+    }
+
+    public void answer(Message incoming, String answer) {
+        send(incoming.chat().id().toString(), answer);
     }
 
     public void send(String chatId, String message) {
@@ -91,7 +101,7 @@ public class Bot {
                 if (!userIsAllowed(message)) {
                     informUnauthorisedRequest(chatId, message);
                 } else {
-                    processCommands(chatId, message);
+                    processCommands(message);
                 }
             }
         });
@@ -112,47 +122,26 @@ public class Bot {
         return Objects.equals(owner, message.from().username());
     }
 
-    private void processCommands(String chatId, Message message) {
-        if (message.text().contains(ADD_SEARCH_REQUEST)) {
-            processSearchRequest(message);
-        } else if (message.text().contains(DISPLAY_SEARCH_REQUEST)) {
-            processDisplayRequest(chatId);
-        } else if (message.text().contains(DELETE_SEARCH_REQUEST)) {
-            processDeleteRequest(message);
-        } else if (isOwner(message)) {
-            if (message.text().contains(DELETE_ALLOWED_USER)) {
-                processDeleteUser(chatId, message);
-            } else if (message.text().contains(ADD_ALLOWED_USER)) {
-                processAddUser(chatId, message);
-            }
-        }
+    private void processCommands(Message message) {
+        commandsManager.callFor(message);
     }
 
-    private void processDeleteUser(String chatId, Message message) {
-        String longStr = message.text().substring(DELETE_ALLOWED_USER.length()).trim();
+    private void processDeleteUser(DeleteUserParams params) {
         try {
-            long userId = Long.parseLong(longStr);
+            long userId = params.getUserId();
             allowedUsersRepository.deleteById(userId);
             allowedUsers.remove(userId);
-            send(chatId, "Deleted!");
-        } catch (NumberFormatException e) {
-            send(chatId, "Not a number");
+            answer(params.getMessage(), "Deleted!");
         } catch (EmptyResultDataAccessException e) {
-            send(chatId, "Nothing to delete");
+            answer(params.getMessage(), "Nothing to delete");
         }
     }
 
-    private void processAddUser(String chatId, Message message) {
-        String longStr = message.text().substring(ADD_ALLOWED_USER.length()).trim();
-        try {
-            long userId = Long.parseLong(longStr);
-            // TODO set name with command param
-            allowedUsersRepository.save(new AllowedUsers(userId, ""));
-            allowedUsers.add(userId);
-            send(chatId, "Added!");
-        } catch (NumberFormatException e) {
-            send(chatId, "Not a number");
-        }
+    private void processAddUser(AddUserParams addUserParams) {
+        long userId = addUserParams.getUserId();
+        allowedUsersRepository.save(new AllowedUsers(userId, ""));
+        allowedUsers.add(userId);
+        answer(addUserParams.getMessage(), "Added!");
     }
 
     private void informUnauthorisedRequest(String chatId, Message message) {
@@ -162,43 +151,40 @@ public class Bot {
                 " send: " + message.text());
     }
 
-    private void processDisplayRequest(String chatId) {
+    private void processDisplayRequests(OnlyMessage onlyMessage) {
+        String chatId = onlyMessage.getMessage().chat().id().toString();
         String configs = searchConfiguration.allToPrint(chatId);
         if (configs.isBlank()) {
             configs = "No entries";
         }
-        send(chatId, configs);
+        answer(onlyMessage.getMessage(), configs);
     }
 
-    private void processSearchRequest(Message message) {
+    private void processSearchRequest(AddParams addParams) {
+        Message message = addParams.getMessage();
         String chatId = message.chat().id().toString();
-        String url = message.text().substring(ADD_SEARCH_REQUEST.length()).trim();
         try {
+            String url = addParams.getUrl();
             URL isUrl = new URL(url);
             if (SupportedHosts.isSupported(isUrl.getHost())) {
                 searchConfiguration.addSearch(url, chatId);
-                send(chatId, "added!");
+                answer(message, "added!");
             } else {
-                send(chatId, "Not a supported website");
+                answer(message, "Not a supported website");
             }
         } catch (MalformedURLException e) {
-            send(chatId, "This is not a valid URL");
+            answer(message, "This is not a valid URL");
         }
     }
 
-    private void processDeleteRequest(Message message) {
-        String chatId = message.chat().id().toString();
-        String longStr = message.text().substring(DELETE_SEARCH_REQUEST.length()).trim();
-        try {
-            long id = Long.parseLong(longStr);
-            boolean worked = searchConfiguration.delete(id);
-            if (worked) {
-                send(chatId, "Deleted!");
-            } else {
-                send(chatId, "Nothing to delete");
-            }
-        } catch (NumberFormatException e) {
-            send(chatId, "Not a number");
+    private void processDeleteRequest(DeleteSrParams params) {
+        long id = params.getId();
+        boolean worked = searchConfiguration.delete(id);
+        if (worked) {
+            answer(params.getMessage(), "Deleted!");
+        } else {
+            answer(params.getMessage(), "Nothing to delete");
         }
+
     }
 }

@@ -66,6 +66,7 @@ public class Bot {
         commandsManager.registerCommand(new DeleteSrCommand(), this::processDeleteRequest);
         commandsManager.registerCommand(new AddUserCommand(), this::processAddUser);
         commandsManager.registerCommand(new DeleteUserCommand(), this::processDeleteUser);
+        commandsManager.registerCommand(new DisplayUsersCommand(), this::processDisplayUsers);
     }
 
     public void answer(Message incoming, String answer) {
@@ -88,7 +89,11 @@ public class Bot {
 
     private boolean sendRaw(String chatId, String message) {
         SendResponse response = telegramBot.execute(new SendMessage(chatId, message));
-        return response.message() == null || response.message().text() == null || !response.message().text().equals(message);
+        String trimmed = message.trim();
+        if (trimmed.endsWith("\n")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1);
+        }
+        return response.message() == null || response.message().text() == null || !response.message().text().equals(trimmed);
     }
 
     private int processUpdates(List<Update> updates) {
@@ -193,5 +198,13 @@ public class Bot {
             answer(params.getMessage(), "Nothing to delete");
         }
 
+    }
+
+    private void processDisplayUsers(OnlyMessage onlyMessage) {
+        String usersList = "Authorized users:\n";
+        usersList += allowedUsersRepository.findAll().stream()
+                .map(u -> u.getTelegramId() + " " + u.getNames())
+                .collect(Collectors.joining("\n"));
+        answer(onlyMessage.getMessage(), usersList);
     }
 }

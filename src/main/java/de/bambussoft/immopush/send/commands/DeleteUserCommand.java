@@ -17,7 +17,7 @@ public class DeleteUserCommand extends ChatCommand<DeleteUserParams> {
 
     @Override
     public String description() {
-        return "Revokes the rights to command this bot for user with the given id.  You must be the owner of the bot to use this command.";
+        return "Revokes the rights to command this bot for user with the given id. You must be the owner of the bot to use this command.";
     }
 
     @Override

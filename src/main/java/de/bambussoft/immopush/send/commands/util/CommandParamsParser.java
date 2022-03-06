@@ -9,7 +9,11 @@ public class CommandParamsParser<T extends ChatCommand<?>> {
     public CommandParamsParser(String paramsString, T chatCommand) {
         this.chatCommand = chatCommand;
         cursor = -1;
-        params = paramsString.split(" ");
+        if (paramsString == null || paramsString.isBlank()) {
+            params = new String[0];
+        } else {
+            params = paramsString.split(" ");
+        }
     }
 
     public String nextStr() {

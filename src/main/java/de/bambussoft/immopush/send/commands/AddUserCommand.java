@@ -12,7 +12,7 @@ public class AddUserCommand extends ChatCommand<AddUserParams> {
 
     @Override
     public String expectedParams() {
-        return "userId";
+        return "userId name";
     }
 
     @Override

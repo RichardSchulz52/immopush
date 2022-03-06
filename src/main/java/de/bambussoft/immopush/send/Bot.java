@@ -13,6 +13,7 @@ import de.bambussoft.immopush.repo.AllowedUsersRepository;
 import de.bambussoft.immopush.repo.FailedMessage;
 import de.bambussoft.immopush.repo.FailedMessageRepository;
 import de.bambussoft.immopush.send.commands.*;
+import de.bambussoft.immopush.send.commands.util.CommandException;
 import de.bambussoft.immopush.send.commands.util.CommandsManager;
 import de.bambussoft.immopush.send.commands.util.OnlyMessage;
 import org.slf4j.Logger;
@@ -123,7 +124,11 @@ public class Bot {
     }
 
     private void processCommands(Message message) {
-        commandsManager.callFor(message);
+        try {
+            commandsManager.callFor(message);
+        } catch (CommandException ce) {
+            answer(message, ce.getMessage());
+        }
     }
 
     private void processDeleteUser(DeleteUserParams params) {
@@ -139,7 +144,8 @@ public class Bot {
 
     private void processAddUser(AddUserParams addUserParams) {
         long userId = addUserParams.getUserId();
-        allowedUsersRepository.save(new AllowedUsers(userId, ""));
+        String name = addUserParams.getName();
+        allowedUsersRepository.save(new AllowedUsers(userId, name));
         allowedUsers.add(userId);
         answer(addUserParams.getMessage(), "Added!");
     }

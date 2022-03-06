@@ -1,6 +1,7 @@
 package de.bambussoft.immopush.fetch.parser;
 
 import de.bambussoft.immopush.SupportedHosts;
+import de.bambussoft.immopush.fetch.DetailedOffer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -44,5 +45,10 @@ public class EbayKleinanzeigenParser implements WebsiteParser {
             }
         });
         return urls;
+    }
+
+    @Override
+    public DetailedOffer details(String searchName, URL url, String offerHtml) {
+        return new DetailedOffer(searchName, url);
     }
 }

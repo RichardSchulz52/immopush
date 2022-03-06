@@ -1,6 +1,7 @@
 package de.bambussoft.immopush.fetch.parser;
 
 import de.bambussoft.immopush.SupportedHosts;
+import de.bambussoft.immopush.fetch.DetailedOffer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -37,4 +38,20 @@ public class ImmonetParser implements WebsiteParser {
         return urls;
     }
 
+    @Override
+    public DetailedOffer details(String searchName, URL url, String offerHtml) {
+        DetailedOffer detailedOffer = new DetailedOffer(searchName, url);
+        Document document = Jsoup.parse(offerHtml);
+        Element lotElement = document.getElementById("areaid_3");
+        if (lotElement != null && lotElement.hasText()) {
+            String lotText = lotElement.text();
+            String lotValue = lotText.substring(0, lotText.lastIndexOf("."));
+            try {
+                int lot = Integer.parseInt(lotValue);
+                detailedOffer.setLotSize(lot);
+            } catch (NumberFormatException ignore) {
+            }
+        }
+        return detailedOffer;
+    }
 }

@@ -34,7 +34,9 @@ public class SearchConfiguration {
                 .filter(u -> !urlRepository.existsByUrlAndChatId(u.toString(), chatId))
                 .map(u -> new FoundUrl(u.toString(), chatId))
                 .distinct().collect(Collectors.toList());
-        logger.warn("No entries found for adding url {} on chatId {}", url, chatId);
+        if (newUrls.isEmpty()) {
+            logger.warn("No entries found for adding url {} on chatId {}", url, chatId);
+        }
         urlRepository.saveAll(newUrls);
     }
 

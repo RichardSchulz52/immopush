@@ -1,5 +1,6 @@
 package de.bambussoft.immopush;
 
+import de.bambussoft.immopush.fetch.DetailedOffer;
 import de.bambussoft.immopush.fetch.Searcher;
 import de.bambussoft.immopush.repo.FailedMessageRepository;
 import de.bambussoft.immopush.send.Bot;
@@ -35,13 +36,15 @@ public class ImmopushApplication {
 
     @Scheduled(fixedDelay = 30 * 1000)
     void eachMinute() {
-        Map<String, List<URL>> chatIdToNews = searcher.searchNew();
+        Map<String, List<DetailedOffer>> chatIdToNews = searcher.searchNew();
         sendNews(chatIdToNews);
         resendFailed();
     }
 
-    private void sendNews(Map<String, List<URL>> chatIdToNews) {
-        chatIdToNews.forEach((key, value) -> value.forEach(url -> bot.send(key, url.toString())));
+    private void sendNews(Map<String, List<DetailedOffer>> chatIdToNews) {
+        chatIdToNews.forEach((key, value) -> value.forEach(offer -> {
+            bot.send(key, offer.toMessageString());
+        }));
     }
 
     private void resendFailed() {

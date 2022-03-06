@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class Searcher {
@@ -26,22 +27,30 @@ public class Searcher {
         this.searchRepository = searchRepository;
     }
 
-    public Map<String, List<URL>> searchNew() {
-        List<SearchRequest> searchRequests = searchRepository.findAll();
-        Map<String, List<URL>> foundUrls = new HashMap<>();
-        for (SearchRequest sr : searchRequests) {
-            List<URL> strip = findOn(sr.getUrl());
-            List<URL> forChatIds = foundUrls.computeIfAbsent(sr.getChatId(), str -> new ArrayList<>());
-            forChatIds.addAll(strip);
-        }
-        NewsFilter newsFilter = new NewsFilter(urlRepository);
-        for (String chatId : foundUrls.keySet()) {
-            List<URL> unfiltered = foundUrls.get(chatId);
-            List<URL> news = newsFilter.filter(unfiltered, chatId);
-            urlRepository.saveAll(FoundUrl.from(news, chatId));
-            foundUrls.put(chatId, news);
-        }
-        return foundUrls;
+    public Map<String, List<DetailedOffer>> searchNew() {
+        List<SearchRequest> allSearchRequests = searchRepository.findAll();
+        Map<String, List<SearchRequest>> chatIdToRequests = allSearchRequests.stream()
+                .map(SearchRequest::getChatId).distinct().collect(Collectors.toMap(cId -> cId, cId -> allSearchRequests.stream().filter(sr -> sr.getChatId().equals(cId)).collect(Collectors.toList())));
+
+        Map<String, List<DetailedOffer>> chatIdToFoundUrls = new HashMap<>();
+        chatIdToRequests.forEach((chatId, searchRequests) -> {
+            Map<SearchRequest, List<URL>> foundUrls = new HashMap<>();
+            for (SearchRequest sr : searchRequests) {
+                List<URL> strip = findOn(sr.getUrl());
+                List<URL> forChatIds = foundUrls.computeIfAbsent(sr, str -> new ArrayList<>());
+                forChatIds.addAll(strip);
+            }
+            NewsFilter newsFilter = new NewsFilter(urlRepository);
+            for (SearchRequest sr : foundUrls.keySet()) {
+                List<URL> unfiltered = foundUrls.get(sr);
+                List<URL> news = newsFilter.filter(unfiltered, sr.getChatId());
+                urlRepository.saveAll(FoundUrl.from(news, sr.getChatId()));
+                List<DetailedOffer> detailedOffers = addDetails(sr.getSearchName(), news);
+                chatIdToFoundUrls.computeIfAbsent(chatId, c -> new ArrayList<>()).addAll(detailedOffers);
+            }
+        });
+
+        return chatIdToFoundUrls;
     }
 
     public List<URL> findOn(String urlString) {
@@ -55,6 +64,17 @@ public class Searcher {
             e.printStackTrace();
         }
         return strip;
+    }
+
+    private List<DetailedOffer> addDetails(String searchName, List<URL> found) {
+        List<DetailedOffer> detailedOffers = new ArrayList<>();
+        for (URL url : found) {
+            String offerHtml = WebFetcher.fetch(url);
+            WebsiteParser parser = SupportedHosts.getParser(url.getHost());
+            DetailedOffer detailedOffer = parser.details(searchName, url, offerHtml);
+            detailedOffers.add(detailedOffer);
+        }
+        return detailedOffers;
     }
 
 }

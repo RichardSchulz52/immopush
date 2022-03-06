@@ -27,26 +27,27 @@ public class SearchConfiguration {
         this.urlRepository = urlRepository;
     }
 
-    public void addSearch(String url, String chatId) {
-        searchRepository.save(new SearchRequest(url, chatId));
+    public void addSearch(String url, String chatId, String searchName) {
+        searchRepository.save(new SearchRequest(url, chatId, searchName));
         List<URL> urls = searcher.findOn(url);
         List<FoundUrl> newUrls = urls.stream()
                 .filter(u -> !urlRepository.existsByUrlAndChatId(u.toString(), chatId))
                 .map(u -> new FoundUrl(u.toString(), chatId))
                 .distinct().collect(Collectors.toList());
-        logger.warn("No url found for adding url {} on chatId {}", url, chatId);
+        logger.warn("No entries found for adding url {} on chatId {}", url, chatId);
         urlRepository.saveAll(newUrls);
     }
 
     public String allToPrint(String chatId) {
-        return searchRepository.findAllByChatId(chatId).stream().map(s -> s.getId() + " " + s.getUrl()).collect(Collectors.joining("\n"));
+        return searchRepository.findAllByChatId(chatId).stream().map(s -> s.getSearchName() + " " + s.getUrl()).collect(Collectors.joining("\n"));
     }
 
-    public boolean delete(long id) {
-        if (!searchRepository.existsById(id)) {
+    public boolean delete(String searchName, String chatId) {
+        SearchRequest sr = searchRepository.findByChatIdAndSearchName(chatId, searchName);
+        if (sr == null) {
             return false;
         }
-        searchRepository.deleteById(id);
+        searchRepository.deleteById(sr.getId());
         return true;
     }
 }

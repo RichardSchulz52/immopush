@@ -24,6 +24,6 @@ public class DeleteSrCommand extends ChatCommand<DeleteSrParams> {
     @Override
     public DeleteSrParams mapToParams(Message message, String paramsString) {
         CommandParamsParser<DeleteSrCommand> parser = new CommandParamsParser<>(paramsString, this);
-        return new DeleteSrParams(message, parser.nextLong());
+        return new DeleteSrParams(message, parser.nextStr());
     }
 }

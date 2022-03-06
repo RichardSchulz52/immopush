@@ -12,4 +12,8 @@ public abstract class HasMessage {
     public Message getMessage() {
         return message;
     }
+
+    public String getChatId() {
+        return message.chat().id().toString();
+    }
 }

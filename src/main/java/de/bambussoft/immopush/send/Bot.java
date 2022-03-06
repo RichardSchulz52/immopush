@@ -171,9 +171,10 @@ public class Bot {
         String chatId = message.chat().id().toString();
         try {
             String url = addParams.getUrl();
+            String searchName = addParams.getName();
             URL isUrl = new URL(url);
             if (SupportedHosts.isSupported(isUrl.getHost())) {
-                searchConfiguration.addSearch(url, chatId);
+                searchConfiguration.addSearch(url, chatId, searchName);
                 answer(message, "added!");
             } else {
                 answer(message, "Not a supported website");
@@ -184,8 +185,8 @@ public class Bot {
     }
 
     private void processDeleteRequest(DeleteSrParams params) {
-        long id = params.getId();
-        boolean worked = searchConfiguration.delete(id);
+        String name = params.getName();
+        boolean worked = searchConfiguration.delete(name, params.getChatId());
         if (worked) {
             answer(params.getMessage(), "Deleted!");
         } else {

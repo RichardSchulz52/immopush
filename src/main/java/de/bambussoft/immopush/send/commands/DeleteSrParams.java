@@ -4,14 +4,14 @@ import com.pengrad.telegrambot.model.Message;
 import de.bambussoft.immopush.send.commands.util.HasMessage;
 
 public class DeleteSrParams extends HasMessage {
-    private final long id;
+    private final String name;
 
-    public DeleteSrParams(Message message, long id) {
+    public DeleteSrParams(Message message, String name) {
         super(message);
-        this.id = id;
+        this.name = name;
     }
 
-    public long getId() {
-        return id;
+    public String getName() {
+        return name;
     }
 }

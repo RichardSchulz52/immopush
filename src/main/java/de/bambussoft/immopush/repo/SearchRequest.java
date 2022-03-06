@@ -15,13 +15,16 @@ public class SearchRequest {
     String url;
     @Column(nullable = false)
     String chatId;
+    @Column
+    String searchName;
 
     public SearchRequest() {
     }
 
-    public SearchRequest(String url, String chatId) {
+    public SearchRequest(String url, String chatId, String searchName) {
         this.url = url;
         this.chatId = chatId;
+        this.searchName = searchName;
     }
 
     public long getId() {
@@ -36,4 +39,7 @@ public class SearchRequest {
         return chatId;
     }
 
+    public String getSearchName() {
+        return searchName;
+    }
 }

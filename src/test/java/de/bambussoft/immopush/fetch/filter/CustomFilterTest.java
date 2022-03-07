@@ -28,15 +28,15 @@ class CustomFilterTest {
     private static final Object MAX_700 = new FilterEntry(ANY_CHAT_ID, SEARCH_1, FilterAttribute.LOT_SIZE, FilterRelation.MAX, 700);
     private static final Object MAX_1000 = new FilterEntry(ANY_CHAT_ID, SEARCH_1, FilterAttribute.LOT_SIZE, FilterRelation.MAX, 1000);
     private static final Object S2_MIN_500 = new FilterEntry(ANY_CHAT_ID, SEARCH_2, FilterAttribute.LOT_SIZE, FilterRelation.MIN, 500);
-    ;
 
+    private static final DetailedOffer S1_MISSING_INFO = getDetailedOffer(SEARCH_1, "https://www.immonet.de/angebot/5623613467", null);
     private static final DetailedOffer S1_481 = getDetailedOffer(SEARCH_1, "https://www.immonet.de/angebot/46803183", 481);
     private static final DetailedOffer S1_780 = getDetailedOffer(SEARCH_1, "https://www.immonet.de/angebot/05467657", 780);
     private static final DetailedOffer S1_537 = getDetailedOffer(SEARCH_1, "https://www.immonet.de/angebot/59734987", 537);
     private static final DetailedOffer S2_467 = getDetailedOffer(SEARCH_2, "https://www.immonet.de/angebot/72345341", 467);
 
-
     public static List<DetailedOffer> offers = new ArrayList<>() {{
+        add(S1_MISSING_INFO);
         add(S1_481);
         add(S1_780);
         add(S1_537);
@@ -44,8 +44,8 @@ class CustomFilterTest {
     }};
 
     CustomFilter sut;
-    FilterEntryRepository repo;
 
+    FilterEntryRepository repo;
     @BeforeEach
     void setUp() {
         repo = mock(FilterEntryRepository.class);
@@ -54,12 +54,12 @@ class CustomFilterTest {
 
     public static Stream<Arguments> testData() {
         return Stream.of(
-                Arguments.of(Collections.singletonList(MIN_500), List.of(S1_537, S1_780, S2_467)),
-                Arguments.of(Collections.singletonList(MAX_700), List.of(S1_481, S1_537, S2_467)),
-                Arguments.of(List.of(MIN_500, MAX_700), List.of(S1_537, S2_467)),
-                Arguments.of(Collections.singletonList(MAX_1000), List.of(S1_481, S1_537, S1_780, S2_467)),
-                Arguments.of(Collections.singletonList(S2_MIN_500), List.of(S1_481, S1_537, S1_780)),
-                Arguments.of(List.of(MIN_500, S2_MIN_500), List.of(S1_537, S1_780))
+                Arguments.of(Collections.singletonList(MIN_500), List.of(S1_MISSING_INFO, S1_537, S1_780, S2_467)),
+                Arguments.of(Collections.singletonList(MAX_700), List.of(S1_MISSING_INFO, S1_481, S1_537, S2_467)),
+                Arguments.of(List.of(MIN_500, MAX_700), List.of(S1_MISSING_INFO, S1_537, S2_467)),
+                Arguments.of(Collections.singletonList(MAX_1000), List.of(S1_MISSING_INFO, S1_481, S1_537, S1_780, S2_467)),
+                Arguments.of(Collections.singletonList(S2_MIN_500), List.of(S1_MISSING_INFO, S1_481, S1_537, S1_780)),
+                Arguments.of(List.of(MIN_500, S2_MIN_500), List.of(S1_MISSING_INFO, S1_537, S1_780))
         );
     }
 
@@ -73,7 +73,7 @@ class CustomFilterTest {
                 allowedOffers.containsAll(filtered);
     }
 
-    private static DetailedOffer getDetailedOffer(String searchName, String url, int lotSize) {
+    private static DetailedOffer getDetailedOffer(String searchName, String url, Integer lotSize) {
         DetailedOffer detailedOffer = null;
         try {
             detailedOffer = new DetailedOffer(searchName, new URL(url));

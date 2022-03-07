@@ -22,11 +22,11 @@ public class DetailedOffer {
         return url;
     }
 
-    public int getLotSize() {
+    public Integer getLotSize() {
         return lotSize;
     }
 
-    public void setLotSize(int lotSize) {
+    public void setLotSize(Integer lotSize) {
         this.lotSize = lotSize;
     }
 

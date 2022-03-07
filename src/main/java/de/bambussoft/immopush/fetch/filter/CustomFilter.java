@@ -40,6 +40,8 @@ public class CustomFilter {
                     isAllowed = false;
                 }
                 break;
+            default:
+                throw new RuntimeException("filter attribute not implemented");
         }
         return isAllowed;
     }

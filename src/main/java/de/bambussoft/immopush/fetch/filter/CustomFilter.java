@@ -44,7 +44,10 @@ public class CustomFilter {
         return isAllowed;
     }
 
-    private boolean valueAllowed(int offerValue, int filterValue, FilterRelation relation) {
+    private boolean valueAllowed(Integer offerValue, int filterValue, FilterRelation relation) {
+        if (offerValue == null) {
+            return true;
+        }
         switch (relation) {
             case MIN:
                 return offerValue >= filterValue;

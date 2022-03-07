@@ -8,10 +8,7 @@ import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import de.bambussoft.immopush.SearchConfiguration;
 import de.bambussoft.immopush.SupportedHosts;
-import de.bambussoft.immopush.repo.AllowedUsers;
-import de.bambussoft.immopush.repo.AllowedUsersRepository;
-import de.bambussoft.immopush.repo.FailedMessage;
-import de.bambussoft.immopush.repo.FailedMessageRepository;
+import de.bambussoft.immopush.repo.*;
 import de.bambussoft.immopush.send.commands.*;
 import de.bambussoft.immopush.send.commands.util.CommandException;
 import de.bambussoft.immopush.send.commands.util.CommandsManager;
@@ -39,6 +36,7 @@ public class Bot {
     private final SearchConfiguration searchConfiguration;
     private final AllowedUsersRepository allowedUsersRepository;
     private final FailedMessageRepository failedMessageRepository;
+    private final FilterEntryRepository filterEntryRepository;
     @Value("${bot.token}")
     private String token;
     @Value("${bot.owner.chatId}")
@@ -49,10 +47,11 @@ public class Bot {
     private CommandsManager commandsManager;
 
     @Autowired
-    public Bot(SearchConfiguration searchConfiguration, AllowedUsersRepository allowedUsersRepository, FailedMessageRepository failedMessageRepository) {
+    public Bot(SearchConfiguration searchConfiguration, AllowedUsersRepository allowedUsersRepository, FailedMessageRepository failedMessageRepository, FilterEntryRepository filterEntryRepository) {
         this.searchConfiguration = searchConfiguration;
         this.allowedUsersRepository = allowedUsersRepository;
         this.failedMessageRepository = failedMessageRepository;
+        this.filterEntryRepository = filterEntryRepository;
     }
 
     @PostConstruct
@@ -64,6 +63,7 @@ public class Bot {
         commandsManager.registerCommand(new AddCommand(), this::processSearchRequest);
         commandsManager.registerCommand(new DisplayCommand(), this::processDisplayRequests);
         commandsManager.registerCommand(new DeleteSrCommand(), this::processDeleteRequest);
+        commandsManager.registerCommand(new FilterCommand(), this::processFilter);
         commandsManager.registerCommand(new AddUserCommand(), this::processAddUser);
         commandsManager.registerCommand(new DeleteUserCommand(), this::processDeleteUser);
         commandsManager.registerCommand(new DisplayUsersCommand(), this::processDisplayUsers);
@@ -169,6 +169,26 @@ public class Bot {
             configs = "No entries";
         }
         answer(onlyMessage.getMessage(), configs);
+    }
+
+    private void processFilter(FilterParams filterParams) {
+        String searchName = filterParams.getSearchName();
+        String chatId = filterParams.getChatId();
+        SearchRequest searchRequest = searchConfiguration.find(chatId, searchName);
+        if (searchRequest == null) {
+            answer(filterParams.getMessage(), "no search with name " + searchName);
+        } else {
+            FilterEntry filterEntry = new FilterEntry(chatId, searchName, filterParams.getAttribute(), filterParams.getFilterRelation(), filterParams.getValue());
+            List<FilterEntry> existing = filterEntryRepository.findByChatIdAndSearchNameAndAttribute(chatId, searchName, filterParams.getAttribute());
+            if (!existing.isEmpty()) {
+                FilterEntry oldFilter = existing.get(0);
+                filterEntry.setId(oldFilter.getId());
+                answer(filterParams.getMessage(), "updated!");
+            } else {
+                answer(filterParams.getMessage(), "added!");
+            }
+            filterEntryRepository.save(filterEntry);
+        }
     }
 
     private void processSearchRequest(AddParams addParams) {

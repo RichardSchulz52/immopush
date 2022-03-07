@@ -1,6 +1,7 @@
 package de.bambussoft.immopush.fetch;
 
 import java.net.URL;
+import java.util.Objects;
 
 public class DetailedOffer {
 
@@ -37,5 +38,18 @@ public class DetailedOffer {
         }
         sb.append(url);
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DetailedOffer that = (DetailedOffer) o;
+        return Objects.equals(searchName, that.searchName) && Objects.equals(url, that.url) && Objects.equals(lotSize, that.lotSize);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(searchName, url, lotSize);
     }
 }

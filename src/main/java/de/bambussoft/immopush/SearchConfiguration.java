@@ -52,4 +52,8 @@ public class SearchConfiguration {
         searchRepository.deleteById(sr.getId());
         return true;
     }
+
+    public SearchRequest find(String chatId, String searchName) {
+        return searchRepository.findByChatIdAndSearchName(chatId, searchName);
+    }
 }

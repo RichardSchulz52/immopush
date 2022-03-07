@@ -1,5 +1,11 @@
 package de.bambussoft.immopush.send.commands.util;
 
+import de.bambussoft.immopush.fetch.filter.FilterAttribute;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Locale;
+
 public class CommandParamsParser<T extends ChatCommand<?>> {
 
     private final String[] params;
@@ -29,6 +35,15 @@ public class CommandParamsParser<T extends ChatCommand<?>> {
         }
     }
 
+    public Integer nextInt() {
+        String anInt = getNext("int");
+        try {
+            return Integer.parseInt(anInt);
+        } catch (NumberFormatException e) {
+            throw new CommandException("not an int at param position " + cursor);
+        }
+    }
+
     private String getNext(String expectedTypeName) {
         try {
             cursor++;
@@ -38,5 +53,13 @@ public class CommandParamsParser<T extends ChatCommand<?>> {
         }
     }
 
-
+    public <E extends Enum<?>> E nextEnum(Class<E> enumClass) {
+        try {
+            String anEnum = getNext("enum").toUpperCase(Locale.ROOT);
+            Method valueOf = enumClass.getMethod("valueOf", String.class);
+            return (E) valueOf.invoke(null, anEnum);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new CommandException("internal error");
+        }
+    }
 }

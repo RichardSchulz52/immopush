@@ -37,6 +37,7 @@ public class Bot {
     private final AllowedUsersRepository allowedUsersRepository;
     private final FailedMessageRepository failedMessageRepository;
     private final FilterEntryRepository filterEntryRepository;
+    private SearchRepository searchRepository;
     @Value("${bot.token}")
     private String token;
     @Value("${bot.owner.chatId}")
@@ -47,11 +48,12 @@ public class Bot {
     private CommandsManager commandsManager;
 
     @Autowired
-    public Bot(SearchConfiguration searchConfiguration, AllowedUsersRepository allowedUsersRepository, FailedMessageRepository failedMessageRepository, FilterEntryRepository filterEntryRepository) {
+    public Bot(SearchConfiguration searchConfiguration, AllowedUsersRepository allowedUsersRepository, FailedMessageRepository failedMessageRepository, FilterEntryRepository filterEntryRepository, SearchRepository searchRepository) {
         this.searchConfiguration = searchConfiguration;
         this.allowedUsersRepository = allowedUsersRepository;
         this.failedMessageRepository = failedMessageRepository;
         this.filterEntryRepository = filterEntryRepository;
+        this.searchRepository = searchRepository;
     }
 
     @PostConstruct
@@ -163,12 +165,11 @@ public class Bot {
     }
 
     private void processDisplayRequests(OnlyMessage onlyMessage) {
-        String chatId = onlyMessage.getMessage().chat().id().toString();
-        String configs = searchConfiguration.allToPrint(chatId);
-        if (configs.isBlank()) {
-            configs = "No entries";
-        }
-        answer(onlyMessage.getMessage(), configs);
+        String chatId = onlyMessage.getChatId();
+        List<SearchRequest> searchRequests = searchRepository.findAllByChatId(chatId);
+        List<FilterEntry> filters = filterEntryRepository.findByChatId(chatId);
+        String details = PrintFormatter.details(searchRequests, filters);
+        answer(onlyMessage.getMessage(), details);
     }
 
     private void processFilter(FilterParams filterParams) {

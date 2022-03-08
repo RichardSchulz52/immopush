@@ -40,10 +40,6 @@ public class SearchConfiguration {
         urlRepository.saveAll(newUrls);
     }
 
-    public String allToPrint(String chatId) {
-        return searchRepository.findAllByChatId(chatId).stream().map(s -> s.getSearchName() + " " + s.getUrl()).collect(Collectors.joining("\n"));
-    }
-
     public boolean delete(String searchName, String chatId) {
         SearchRequest sr = searchRepository.findByChatIdAndSearchName(chatId, searchName);
         if (sr == null) {

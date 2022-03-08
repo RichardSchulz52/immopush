@@ -1,6 +1,7 @@
 package de.bambussoft.immopush.send.commands.util;
 
-import de.bambussoft.immopush.fetch.filter.FilterAttribute;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -8,6 +9,7 @@ import java.util.Locale;
 
 public class CommandParamsParser<T extends ChatCommand<?>> {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final String[] params;
     private final T chatCommand;
     private int cursor;
@@ -59,6 +61,7 @@ public class CommandParamsParser<T extends ChatCommand<?>> {
             Method valueOf = enumClass.getMethod("valueOf", String.class);
             return (E) valueOf.invoke(null, anEnum);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            logger.error("Enum parsing error", e);
             throw new CommandException("internal error");
         }
     }

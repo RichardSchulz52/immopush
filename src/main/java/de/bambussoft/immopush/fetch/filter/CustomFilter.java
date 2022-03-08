@@ -3,10 +3,12 @@ package de.bambussoft.immopush.fetch.filter;
 import de.bambussoft.immopush.fetch.DetailedOffer;
 import de.bambussoft.immopush.repo.FilterEntry;
 import de.bambussoft.immopush.repo.FilterEntryRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class CustomFilter {
 
     private final FilterEntryRepository filterEntryRepository;

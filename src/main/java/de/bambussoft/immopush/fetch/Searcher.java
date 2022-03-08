@@ -1,6 +1,7 @@
 package de.bambussoft.immopush.fetch;
 
 import de.bambussoft.immopush.SupportedHosts;
+import de.bambussoft.immopush.fetch.filter.CustomFilter;
 import de.bambussoft.immopush.fetch.parser.WebsiteParser;
 import de.bambussoft.immopush.repo.FoundUrl;
 import de.bambussoft.immopush.repo.SearchRepository;
@@ -21,10 +22,12 @@ public class Searcher {
 
     private final UrlRepository urlRepository;
     private final SearchRepository searchRepository;
+    private final CustomFilter customFilter;
 
-    public Searcher(UrlRepository urlRepository, SearchRepository searchRepository) {
+    public Searcher(UrlRepository urlRepository, SearchRepository searchRepository, CustomFilter customFilter) {
         this.urlRepository = urlRepository;
         this.searchRepository = searchRepository;
+        this.customFilter = customFilter;
     }
 
     public Map<String, List<DetailedOffer>> searchNew() {
@@ -46,7 +49,8 @@ public class Searcher {
                 List<URL> news = newsFilter.filter(unfiltered, sr.getChatId());
                 urlRepository.saveAll(FoundUrl.from(news, sr.getChatId()));
                 List<DetailedOffer> detailedOffers = addDetails(sr.getSearchName(), news);
-                chatIdToFoundUrls.computeIfAbsent(chatId, c -> new ArrayList<>()).addAll(detailedOffers);
+                List<DetailedOffer> filtered = customFilter.filter(chatId, detailedOffers);
+                chatIdToFoundUrls.computeIfAbsent(chatId, c -> new ArrayList<>()).addAll(filtered);
             }
         });
 

@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +21,7 @@ public abstract class ParserTest {
 
 
     void test(WebsiteParser sut, List<String> expected, String pathToHtml) {
+        expected = expected.stream().map(s -> s.replace("&amp;", "&")).collect(Collectors.toList());
         InputStream inputList = getClass().getClassLoader().getResourceAsStream(pathToHtml);
         String html = fileAsString(inputList);
         List<String> foundExposeUrls = sut.parse(html).stream().map(URL::toString).collect(Collectors.toList());
